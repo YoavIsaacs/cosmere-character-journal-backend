@@ -1,4 +1,3 @@
-from app.db import get_db
 from psycopg2.extensions import cursor
 
 def add_character_to_db(user_id: str, full_name: str = "", home_world: str = "", abilities: str = "",
@@ -51,4 +50,18 @@ def insert_user_to_db(username: str = "", email: str = "", hashed_password: str 
 
     cur.execute(query=query_str)
 
-    
+def select_characters_from_db(user_id: str, cur: cursor):
+    query_str = f"""SELECT * FROM characters WHERE user_id = {user_id}"""
+    cur.execute(query=query_str)
+
+def select_events_from_db(user_id: str, cur: cursor):
+    query_str = f"""SELECT * FROM events WHERE user_id = {user_id}"""
+    cur.execute(query=query_str)
+
+def select_relationships_from_db(user_id: str, cur: cursor):
+    query_str = f"""SELECT * FROM relationships WHERE user_id = {user_id}"""
+    cur.execute(query=query_str)
+
+def select_users_from_db(cur: cursor):
+    query_str = f"""SELECT * FROM users"""
+    cur.execute(query=query_str)
