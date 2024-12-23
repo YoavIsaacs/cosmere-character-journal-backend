@@ -1,7 +1,6 @@
 from typing import List
 
 from bson import ObjectId
-from fastapi import HTTPException
 
 from app.db import get_db
 
