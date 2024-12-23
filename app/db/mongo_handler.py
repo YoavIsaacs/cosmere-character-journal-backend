@@ -186,3 +186,53 @@ async def delete_event(event_id: ObjectId) -> dict:
 
         except Exception as e:
             return {"status_code": 500, "message": f"internal error deleting event: {e}"}
+
+# --------------------------------- RELATIONSHIPS CRUD -------------------------------
+async def create_relationship(relationship_info: dict) -> dict:
+    async with get_db() as db:
+        relationships = db.relationships
+        try:
+            result = await relationships.insert_one(relationship_info)
+            return {"status_code": 201, "message": f"relationship_id {result.inserted_id} created successfully."}
+        except Exception as e:
+            return {"status_code": 500, "message": f"internal error creating new relationship: {e}"}
+
+async def get_all_relationships(user_id: ObjectId) -> dict | List:
+    async with get_db() as db:
+        relationships = db.relationships
+        try:
+            cursor = relationships.find({"user_id": user_id})
+            relationship_list = await cursor.to_list(None)
+            if not relationship_list:
+                return {"status_code": 404, "message": "User has no relationships"}
+            return relationship_list
+        except Exception as e:
+            return {"status_code": 500, "message": f"internal error getting relationships: {e}"}
+
+async def update_relationship(relationship_id: ObjectId, new_info: dict) -> dict:
+    async with get_db() as db:
+        relationships = db.relationships
+        try:
+            result = await relationships.update_one({"_id": relationship_id}, {"$set": new_info})
+
+            if result.matched_count == 0:
+                return {"status_code": 404, "message": "Relationship not found."}
+
+            return {"status_code": 200, "message": "Relationship updated successfully"}
+
+        except Exception as e:
+            return {"status_code": 500, "message": f"internal error updating relationship info: {e}"}
+
+async def delete_relationship(relationship_id: ObjectId) -> dict:
+    async with get_db() as db:
+        relationships = db.relationships
+        try:
+            result = await relationships.delete_one({"_id": relationship_id})
+
+            if result.deleted_count == 0:
+                return {"status_code": 404, "message": "Relationship not found."}
+
+            return {"status_code": 200, "message": "Relationship deleted successfully"}
+
+        except Exception as e:
+            return {"status_code": 500, "message": f"internal error deleting relationship: {e}"}
