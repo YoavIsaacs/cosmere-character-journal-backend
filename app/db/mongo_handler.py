@@ -1,3 +1,5 @@
+from typing import List
+
 from bson import ObjectId
 from fastapi import HTTPException
 
@@ -18,8 +20,6 @@ async def create_user(username: str, email: str, hashed_password: str) -> dict:
         except Exception as e:
             return {"status_code": 500, "message": f"internal error creating new user: {e}"}
 
-
-
 async def get_user(username: str, hashed_password: str) -> dict:
     async with get_db() as db:
         users = db.users_info
@@ -32,7 +32,6 @@ async def get_user(username: str, hashed_password: str) -> dict:
             return {"status_code": 200, "user_info": wanted_user}
         except Exception as e:
             return {"status_code": 500, "message": f"internal error getting user: {e}"}
-
 
 async def update_user(user_id: ObjectId, new_info: dict) -> dict:
     async with get_db() as db:
@@ -48,7 +47,6 @@ async def update_user(user_id: ObjectId, new_info: dict) -> dict:
         except Exception as e:
             return {"status_code": 500, "message": f"internal error updating user info: {e}"}
 
-
 async def delete_user(user_id: ObjectId) -> dict:
     async with get_db() as db:
         users = db.users_info
@@ -62,3 +60,66 @@ async def delete_user(user_id: ObjectId) -> dict:
 
         except Exception as e:
             return {"status_code": 500, "message": f"internal error deleting user info: {e}"}
+
+# --------------------------------- CHARACTERS CRUD -------------------------------
+async def create_character(character_info: dict) -> dict:
+    async with get_db() as db:
+        characters = db.character
+        try:
+            result = await characters.insert_one(character_info)
+            return {"status_code": 201, "message": f"character_id {result.inserted_id} created successfully."}
+        except Exception as e:
+            return {"status_code": 500, "message": f"internal error creating new character: {e}"}
+
+async def get_character(character_name: str, user_id: ObjectId) -> dict:
+    async with get_db() as db:
+        characters = db.character
+        try:
+            wanted_character = await characters.find_one( {"user_id": user_id, "character_name": character_name})
+
+            if wanted_character is None:
+                return {"status_code": 404, "message": "Character not found."}
+
+            return {"status_code": 200, "character_info": wanted_character}
+        except Exception as e:
+            return {"status_code": 500, "message": f"internal error getting character: {e}"}
+
+async def get_all_characters(user_id: ObjectId) -> dict | List:
+    async with get_db() as db:
+        characters = db.character
+        try:
+            cursor = characters.find({"user_id": user_id})
+            character_list = await cursor.to_list(None)
+            if not character_list:
+                return {"status_code": 404, "message": "User has no characters"}
+            return character_list
+        except Exception as e:
+            return {"status_code": 500, "message": f"internal error getting characters: {e}"}
+
+async def update_character(character_id: ObjectId, new_info: dict) -> dict:
+    async with get_db() as db:
+        characters = db.character
+        try:
+            result = await characters.update_one({"_id": character_id}, {"$set": new_info})
+
+            if result.matched_count == 0:
+                return {"status_code": 404, "message": "Character not found."}
+
+            return {"status_code": 200, "message": "Character updated successfully"}
+
+        except Exception as e:
+            return {"status_code": 500, "message": f"internal error updating character info: {e}"}
+
+async def delete_character(character_id: ObjectId) -> dict:
+    async with get_db() as db:
+        characters = db.character
+        try:
+            result = await characters.delete_one({"_id": character_id})
+
+            if result.deleted_count == 0:
+                return {"status_code": 404, "message": "Character not found."}
+
+            return {"status_code": 200, "message": "Character deleted successfully"}
+
+        except Exception as e:
+            return {"status_code": 500, "message": f"internal error deleting character: {e}"}
