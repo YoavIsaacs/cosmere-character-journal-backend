@@ -1,4 +1,3 @@
-from bson import ObjectId
 from pydantic import BaseModel
 from typing import List
 
@@ -10,4 +9,4 @@ class EventModel(BaseModel):
     world: str
     book: str
     date: int
-    user_id: ObjectId
+    user_id: str

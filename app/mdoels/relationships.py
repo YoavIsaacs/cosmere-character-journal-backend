@@ -1,4 +1,3 @@
-from bson import ObjectId
 from pydantic import BaseModel
 
 class RelationshipModel(BaseModel):
@@ -6,4 +5,4 @@ class RelationshipModel(BaseModel):
     characterB: dict # {name: ID}
     relationship_type: str
     description: str
-    user_id: ObjectId
+    user_id: str
